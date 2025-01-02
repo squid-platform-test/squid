@@ -212,7 +212,6 @@ jobs:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
       CCACHE_DISABLE: 1
-      pjobs: -j`nproc` -l`nproc`
 
     steps:
       - name: Install QEMU
