@@ -31,8 +31,8 @@ jobs:
           - { name: layer-01-minimal, nick: minimal }
           - { name: layer-02-maximus, nick: maximus }
         platform:
-#          - arm
-#          - arm64
+          - arm
+          - arm64
           - i386
         os: # obtained by running "make targets" in https://github.com/kinkie/dockerfiles
           - centos-stream-10
@@ -132,7 +132,6 @@ jobs:
           path: btlayer-*.log
 
   linux-distros-p2: #copypasta. yuck. Refactor to a callable workflow
-    if: false
 
     strategy:
       fail-fast: false
