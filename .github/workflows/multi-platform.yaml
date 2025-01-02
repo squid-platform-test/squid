@@ -111,7 +111,7 @@ jobs:
       - name: Cache config.cache
         uses: actions/cache@v4
         with:
-          path: /tmp/config.cache
+          path: config.cache
           key: config-cache-${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}
 
       - name: Run test-builds
@@ -121,7 +121,7 @@ jobs:
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+            ./test-builds.sh --aggressively-use-config-cache --config-cache-file config.cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
@@ -130,7 +130,7 @@ jobs:
           name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
           path: btlayer-*.log
 
-  linux-distros-p2: #copypasta. yuck
+  linux-distros-p2: #copypasta. yuck. Refactor to a callable workflow
 
     strategy:
       fail-fast: false
@@ -223,7 +223,7 @@ jobs:
       - name: Cache config.cache
         uses: actions/cache@v4
         with:
-          path: /tmp/config.cache
+          path: config.cache
           key: config-cache-${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}
 
       - name: Run test-builds
@@ -233,7 +233,7 @@ jobs:
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+            ./test-builds.sh --aggressively-use-config-cache --config-cache-file config.cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
