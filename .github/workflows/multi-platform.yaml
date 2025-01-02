@@ -21,7 +21,7 @@ jobs:
   linux-distros-p1:
 
     strategy:
-      max-parallel: 14
+      fail-fast: false
       matrix:
         compiler:
           - { CC: gcc, CXX: g++ }
@@ -127,7 +127,7 @@ jobs:
   linux-distros-p2: #copypasta. yuck
 
     strategy:
-      max-parallel: 14
+      fail-fast: false
       matrix:
         compiler:
           - { CC: gcc, CXX: g++ }
