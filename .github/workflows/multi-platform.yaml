@@ -102,8 +102,8 @@ jobs:
       pjobs: -j`nproc`
 
     steps:
-      - name: Install QEMU
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -111,10 +111,11 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
-          docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
-            squidcache/buildfarm-${{ matrix.os }}:latest \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
             ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
@@ -210,8 +211,8 @@ jobs:
       pjobs: -j`nproc`
 
     steps:
-      - name: Install QEMU
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -219,10 +220,11 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
-          docker run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
-            squidcache/buildfarm-${{ matrix.os }}:latest \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
             ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
