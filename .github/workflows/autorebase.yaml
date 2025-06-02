@@ -1,0 +1,41 @@
+name: Rebase over squid master
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "10 3 12 * *" # earlier than multi-platform
+
+env:
+  upstream: https://github.com/squid-cache/squid
+  branch: master
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1000
+      - name: Rebase
+        shell: bash
+        run: |
+          set -ex 
+
+          git config --local user.email "rebase@users.noreply.github.com"
+          git config --local user.name  "Rebase Action"
+
+          git remote add upstream ${{ env.upstream }}
+          git fetch --tags upstream
+
+          git rebase -Xours upstream/${{ env.branch }}
+
+          ORIGIN_URL=$(git remote get-url origin)
+          git remote set-url origin "${ORIGIN_URL/https:\/\//https:\/\/$GITHUB_TOKEN@}"
+          git push --tags --force-with-lease origin $(git branch --show-current)
+#      - name: Rebase
+#        uses: imba-tjd/rebase-upstream-action@master
+#        with:
+#          upstream: squid-cache/squid
+#          branch: master
