@@ -1,0 +1,149 @@
+# Test building Squid on several Linux distro / CPU platforms, 32- and 64- bit
+# It does not use ccache, as is would be too big to fit in the persistent
+#  storage allowed by Github
+
+name: Multi-platform testing
+
+on:
+  workflow_dispatch:
+  # requires worfklow to be defined to be in the main branch for a repo
+  schedule:
+  - cron: "10 3 12 * *" # earlier than multi-platform
+#  push:
+#    branches: [ github-actions-multiplatform ]
+
+concurrency:
+  # Cancel ongoing tests in case of push to  branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  gen-matrix:
+
+    runs-on: ubuntu-24.04
+
+    outputs:
+      exclusion: ${{ steps.exclusion.outputs.exclusion }}
+      os:  ${{ steps.exclusion.outputs.os }}
+
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v2
+        with:
+          repository: kinkie/dockerfiles
+
+      - name: Define exclusion list
+        id: exclusion
+        run: |
+          printf "exclusion=" >> "$GITHUB_OUTPUT"
+          make json-exclude-list >> "$GITHUB_OUTPUT"
+          printf "os=" >> "$GITHUB_OUTPUT"
+          make targets | sed 's/^- /\\"/;s/$/\\", /' | xargs echo | sed 's/^/\[ /;s/,$/\ ]/' >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+
+  linux-distros-arm:
+    runs-on: ubuntu-24.04-arm
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 14
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
+          - arm
+          - arm64
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+      pjobs: -j`nproc`
+
+    steps:
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
+
+
+  linux-distros: #copypasta. yuck
+    runs-on: ubuntu-24.04
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 14
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
+          # - mips64le # can't execute things yet
+          - ppc64le
+          - riscv64
+          - i386
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude: ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+      pjobs: -j`nproc`
+
+    steps:
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
