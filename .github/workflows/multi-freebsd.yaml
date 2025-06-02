@@ -1,0 +1,74 @@
+name: FreeBSD multi-version testing
+
+on:
+  workflow_dispatch:
+  # requires worfklow to be defined to be in the main branch for a repo
+  schedule:
+  - cron: "10 3 12 * *" # earlier than multi-platform
+  push:
+    branches: [ "multi-freebsd" ]
+
+concurrency:
+  # Cancel ongoing tests in case of push to  branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  freebsd-amd64:
+    runs-on: ubuntu-24.04 # replicate for -arm
+
+    strategy:
+      matrix:
+        osversion:
+          - "15.0"
+          - "14.2"
+          - "13.5"
+
+    name: freebsd(${{ matrix.osversion }})
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          release: ${{ matrix.osversion }}
+          prepare: |
+            export BATCH=yes
+            which nproc >/dev/null && echo "MAKE_JOBS_NUMBER?=`nproc --all`" >>/etc/make.conf
+            echo "OPTIONS_UNSET=CUPS DEBUG DOCS FONTCONFIG NLS X11" >>/etc/make.conf
+            echo "WITHOUT_MODULES=sound ntfs linux" >> /etc/make.conf
+            echo "WITHOUT_X11=yes" >>/etc/make.conf
+            echo "NO_SENDMAIL=true" >>/etc/make.conf
+
+            pkg upgrade -y pkg 
+            pkg install -y \
+                git-tiny \
+                portmaster
+            git clone --depth 1 https://git.FreeBSD.org/ports.git /usr/ports
+            portmaster -G -H --no-confirm --update-if-newer -t -P -d \
+                devel/pkgconf \
+                devel/autoconf \
+                devel/autoconf-archive \
+                devel/automake \
+                devel/cppunit \
+                devel/libltdl \
+                devel/libtool \
+                security/nettle \
+                textproc/translate-toolkit
+
+          run: |
+            export MAKE=gmake
+            ./test-builds.sh
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-freebsd-${{ matrix.osversion }}
+          path: btlayer-*.log
+
