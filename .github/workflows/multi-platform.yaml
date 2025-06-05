@@ -8,14 +8,20 @@ on:
   workflow_dispatch:
   # requires worfklow to be defined to be in the main branch for a repo
   schedule:
-  - cron: "10 3 12 * *" # earlier than multi-platform
-#  push:
-#    branches: [ github-actions-multiplatform ]
+    - cron: "10 3 12 * *"
+  push:
+    branches: [ github-actions-multiplatform ]
 
 concurrency:
   # Cancel ongoing tests in case of push to  branch
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  CCACHE_DISABLE: 1
+  pjobs: -j`nproc`
+  docker_runtime: docker
+  test_job: ./test-builds.sh
 
 jobs:
 
@@ -43,11 +49,12 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
 
-  linux-distros-arm:
+  arm:
     runs-on: ubuntu-24.04-arm
     needs: gen-matrix
 
     strategy:
+      max-parallel: 10
       matrix:
         compiler:
           - { CC: gcc, CXX: g++ }
@@ -58,6 +65,53 @@ jobs:
           - { name: layer-02-maximus, nick: maximus }
         platform:
           - arm
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
+
+  arm64:
+    runs-on: ubuntu-24.04-arm
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 10
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
           - arm64
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
@@ -66,12 +120,10 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: 1
-      pjobs: -j`nproc`
 
     steps:
-      - name: Install QEMU and podman
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -79,12 +131,12 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
-          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
-          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
@@ -93,12 +145,12 @@ jobs:
           name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
           path: btlayer-*.log
 
-
-  linux-distros-1: #copypasta. yuck
+  amd64:
     runs-on: ubuntu-24.04
     needs: gen-matrix
 
     strategy:
+      max-parallel: 10
       matrix:
         compiler:
           - { CC: gcc, CXX: g++ }
@@ -108,22 +160,18 @@ jobs:
           - { name: layer-01-minimal, nick: minimal }
           - { name: layer-02-maximus, nick: maximus }
         platform:
-          # - mips64le # can't execute things yet
           - amd64
-          - riscv64
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
-        exclude: ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: 1
-      pjobs: -j`nproc`
 
     steps:
-      - name: Install QEMU and podman
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -131,12 +179,12 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
-          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
-          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
@@ -145,11 +193,12 @@ jobs:
           name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
           path: btlayer-*.log
 
-  linux-distros-2: #copypasta. yuck
+  i386:
     runs-on: ubuntu-24.04
     needs: gen-matrix
 
     strategy:
+      max-parallel: 10
       matrix:
         compiler:
           - { CC: gcc, CXX: g++ }
@@ -159,22 +208,67 @@ jobs:
           - { name: layer-01-minimal, nick: minimal }
           - { name: layer-02-maximus, nick: maximus }
         platform:
-          # - mips64le # can't execute things yet
           - i386
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
+
+
+  ppc64le:
+    runs-on: ubuntu-24.04
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 10
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
           - ppc64le
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
-        exclude: ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: 1
-      pjobs: -j`nproc`
 
     steps:
-      - name: Install QEMU and podman
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Checkout Sources
         uses: actions/checkout@v4
@@ -182,12 +276,109 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
-          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
-          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
-            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
+
+
+  riscv64:
+    runs-on: ubuntu-24.04
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 10
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
+          - riscv64
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: btlayer-*.log
+
+  mips64le:
+    runs-on: ubuntu-24.04
+    needs: gen-matrix
+
+    strategy:
+      max-parallel: 10
+      matrix:
+        compiler:
+          - { CC: gcc, CXX: g++ }
+          - { CC: clang, CXX: clang++ }
+        layer:
+          - { name: layer-00-default, nick: default }
+          - { name: layer-01-minimal, nick: minimal }
+          - { name: layer-02-maximus, nick: maximus }
+        platform:
+          - mips64le
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+
+    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          echo "job name: ${{ github.job }}"
+          $docker_runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            $test_job --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
 
       - name: Publish build logs
         if: success() || failure()
