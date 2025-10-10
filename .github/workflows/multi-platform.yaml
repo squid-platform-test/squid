@@ -189,6 +189,7 @@ jobs:
             echo "WITHOUT_MODULES=sound ntfs linux" >> /etc/make.conf
             echo "WITHOUT_X11=yes" >>/etc/make.conf
             echo "NO_SENDMAIL=true" >>/etc/make.conf
+            echo "IGNORE_OSVERSION=yes" >>/usr/local/etc/pkg.conf
 
             pkg install -y \
                 git-tiny \
