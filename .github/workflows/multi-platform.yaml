@@ -43,8 +43,7 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
 
-  linux-distros-arm:
-    runs-on: ubuntu-24.04-arm
+  linux-distros-p1:
     needs: gen-matrix
 
     strategy:
@@ -63,6 +62,7 @@ jobs:
           - arm64
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
@@ -99,8 +99,7 @@ jobs:
           path: squid/btlayer-*.log
 
 
-  linux-distros: #copypasta. yuck
-    runs-on: ubuntu-24.04
+  linux-distros-p2: #copypasta. yuck
     needs: gen-matrix
 
     strategy:
@@ -121,6 +120,7 @@ jobs:
           - i386
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude: ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
 
     name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
     env:
