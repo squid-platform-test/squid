@@ -164,7 +164,7 @@ jobs:
       matrix:
         osversion:
           - "15.0"
-          - "14.2"
+          - "14.3"
           - "13.5"
 
     name: freebsd(${{ matrix.osversion }})
