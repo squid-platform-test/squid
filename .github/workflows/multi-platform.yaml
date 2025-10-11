@@ -12,6 +12,15 @@ on:
 #  push:
 #    branches: [ github-actions-multiplatform ]
 
+env:
+  MAX_CONCURRENT_JOBS: 14
+  DOCKER_BUILDFARM_REPO: docker.io/squidcache/buildfarm
+  DOCKER_BUILDFARM_TAG: latest
+  CCACHE_DISABLE: 1
+  pjobs: -j`nproc`
+  COMPILER_MATRIX_JSON: '[ { "CC": "gcc", "CXX": "g++" },  { "CC": "clang", "CXX": "clang++" }]'
+  LAYER_MATRIX_JSON: '[ { "name": "layer-00-default", "nick": "default" }, { "name": "layer-01-minimal", "nick": "minimal" }, { "name": "layer-02-maximus", "nick": "maximus" } ]'
+
 concurrency:
   # Cancel ongoing tests in case of push to  branch
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -40,6 +49,8 @@ jobs:
           make json-exclude-list >> "$GITHUB_OUTPUT"
           printf "os=" >> "$GITHUB_OUTPUT"
           make targets | sed 's/^- /\\"/;s/$/\\", /' | xargs echo | sed 's/^/\[ /;s/,$/\ ]/' >> "$GITHUB_OUTPUT"
+          echo "compiler=${{ env.COMPILER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
+          echo "layer=${{ env.LAYER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
 
@@ -48,15 +59,10 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 14
+      max-parallel: 1
       matrix:
-        compiler:
-          - { CC: gcc, CXX: g++ }
-          - { CC: clang, CXX: clang++ }
-        layer:
-          - { name: layer-00-default, nick: default }
-          - { name: layer-01-minimal, nick: minimal }
-          - { name: layer-02-maximus, nick: maximus }
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
         platform:
           - arm
           - arm64
