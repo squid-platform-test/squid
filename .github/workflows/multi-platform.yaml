@@ -18,8 +18,8 @@ env:
   DOCKER_BUILDFARM_TAG: latest
   CCACHE_DISABLE: 1
   pjobs: -j`nproc`
-  COMPILER_MATRIX_JSON: '[ { "CC": "gcc", "CXX": "g++" },  { "CC": "clang", "CXX": "clang++" }]'
-  LAYER_MATRIX_JSON: '[ { "name": "layer-00-default", "nick": "default" }, { "name": "layer-01-minimal", "nick": "minimal" }, { "name": "layer-02-maximus", "nick": "maximus" } ]'
+  COMPILER_MATRIX_JSON: '[ { "CC": \"gcc\", "CXX": \"g++\" },  { "CC": \"clang\", "CXX": \"clang++\" }]'
+  LAYER_MATRIX_JSON: '[ { "name": \"layer-00-default\", "nick": \"default\" }, { "name": \"layer-01-minimal\", "nick": \"minimal\" }, { "name": \"layer-02-maximus\", "nick": \"maximus\" } ]'
 
 concurrency:
   # Cancel ongoing tests in case of push to  branch
@@ -35,6 +35,8 @@ jobs:
     outputs:
       exclusion: ${{ steps.exclusion.outputs.exclusion }}
       os:  ${{ steps.exclusion.outputs.os }}
+      compiler: ${{ steps.exclusion.outputs.compiler }}
+      layer: ${{ steps.exclusion.outputs.layer }}
 
     steps:
       - name: Check out sources
@@ -53,19 +55,17 @@ jobs:
           echo "layer=${{ env.LAYER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
+# job id is the platform : arm / arm64 here
 
-  linux-distros-p1:
+  arm64:
     needs: gen-matrix
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
         layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
-        platform:
-          - arm
-          - arm64
+        platform: [arm64]
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
     runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
@@ -105,30 +105,20 @@ jobs:
           path: squid/btlayer-*.log
 
 
-  linux-distros-p2: #copypasta. yuck
+  arm:
     needs: gen-matrix
 
     strategy:
       fail-fast: false
-      max-parallel: 14
       matrix:
-        compiler:
-          - { CC: gcc, CXX: g++ }
-          - { CC: clang, CXX: clang++ }
-        layer:
-          - { name: layer-00-default, nick: default }
-          - { name: layer-01-minimal, nick: minimal }
-          - { name: layer-02-maximus, nick: maximus }
-        platform:
-          # - mips64le # can't execute things yet
-          - ppc64le
-          - riscv64
-          - i386
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        platform: [arm]
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
-        exclude: ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
     runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
 
-    name: linux-distros(${{ matrix.platform }},${{ matrix.os }},${{ matrix.compiler.CC }},${{ matrix.layer.nick }})
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
@@ -161,6 +151,149 @@ jobs:
         with:
           name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
           path: squid/btlayer-*.log
+
+  i386:
+    needs: gen-matrix
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        platform: [i386]
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+      pjobs: -j`nproc`
+
+    steps:
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+          path: squid
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: squid/btlayer-*.log
+
+  ppc64le:
+    needs: gen-matrix
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        platform: [ppc64le]
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+      pjobs: -j`nproc`
+
+    steps:
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+          path: squid
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: squid/btlayer-*.log
+
+  riscv64:
+    needs: gen-matrix
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        platform: [riscv64]
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' && 'ubuntu-24.04-arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+      CCACHE_DISABLE: 1
+      pjobs: -j`nproc`
+
+    steps:
+      - name: Install QEMU and podman
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
+
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+          path: squid
+
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            docker.io/squidcache/buildfarm-${{ matrix.os }}:latest \
+            ./test-builds.sh --aggressively-use-config-cache --verbose ${{ matrix.layer.name }}
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: squid/btlayer-*.log
+
+
 
   freebsd-amd64:
     runs-on: ubuntu-24.04 # replicate for -arm
@@ -222,6 +355,6 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: build-logs-freebsd-${{ matrix.osversion }}
+          name: freebsd-${{ matrix.osversion }}
           path: squid/btlayer-*.log
 
