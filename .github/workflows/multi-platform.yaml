@@ -71,8 +71,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CC}}' || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CXX}}' || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -123,8 +123,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CC}}' || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CXX}}' || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -175,8 +175,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CC}}' || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CXX}}' || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -227,8 +227,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CC}}' || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CXX}}' || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -279,9 +279,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CC}}' || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && 'ccache ${{matrix.compiler.CXX}}' || matrix.compiler.CXX }}
-
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Install QEMU and podman
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
