@@ -73,7 +73,7 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && 1 || matrix.platform == 'arm64' && 1 || matrix.platform == 'i386' && 1 || matrix.platform == 'amd64' && 1 || 0 }}
+      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && "true" || matrix.platform == 'arm64' && "true" || matrix.platform == 'i386' && "true" || matrix.platform == 'amd64' && "true" || "false" }}
       pjobs: -j`nproc`
 
     steps:
@@ -128,7 +128,7 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && 1 || matrix.platform == 'arm64' && 1 || matrix.platform == 'i386' && 1 || matrix.platform == 'amd64' && 1 || 0 }}
+      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && "true" || matrix.platform == 'arm64' && "true" || matrix.platform == 'i386' && "true" || matrix.platform == 'amd64' && "true" || "false" }}
       pjobs: -j`nproc`
 
     steps:
@@ -182,7 +182,7 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && 1 || matrix.platform == 'arm64' && 1 || matrix.platform == 'i386' && 1 || matrix.platform == 'amd64' && 1 || 0 }}
+      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && "true" || matrix.platform == 'arm64' && "true" || matrix.platform == 'i386' && "true" || matrix.platform == 'amd64' && "true" || "false" }}
       pjobs: -j`nproc`
 
     steps:
@@ -236,7 +236,7 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && 1 || matrix.platform == 'arm64' && 1 || matrix.platform == 'i386' && 1 || matrix.platform == 'amd64' && 1 || 0 }}
+      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && "true" || matrix.platform == 'arm64' && "true" || matrix.platform == 'i386' && "true" || matrix.platform == 'amd64' && "true" || "false" }}
       pjobs: -j`nproc`
 
     steps:
@@ -290,7 +290,7 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && 1 || matrix.platform == 'arm64' && 1 || matrix.platform == 'i386' && 1 || matrix.platform == 'amd64' && 1 || 0 }}
+      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && "true" || matrix.platform == 'arm64' && "true" || matrix.platform == 'i386' && "true" || matrix.platform == 'amd64' && "true" || "false" }}
       pjobs: -j`nproc`
 
     steps:
