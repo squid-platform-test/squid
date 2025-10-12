@@ -6,7 +6,38 @@ name: Multi-platform testing
 
 on:
   workflow_dispatch:
-  # requires worfklow to be defined to be in the main branch for a repo
+    inputs:
+      arm:
+        description: 'Test on ARM (32-bit)'
+        required: false
+        default: 'true'
+        type: boolean
+      arm64:
+        description: 'Test on ARM64 (64-bit)'
+        required: false
+        default: 'true'
+        type: boolean
+      i386:
+        description: 'Test on i386 (32-bit)'
+        required: false
+        default: 'true'
+        type: boolean
+      ppc64le:
+        description: 'Test on ppc64le (64-bit)'
+        required: false
+        default: 'true'
+        type: boolean
+      riscv64:
+        description: 'Test on riscv64 (64-bit)'
+        required: false
+        default: 'true'
+        type: boolean
+      freebsd:
+        description: 'Test on FreeBSD (amd64)'
+        required: false
+        default: 'true'
+        type: boolean
+
   schedule:
   - cron: "10 3 12 * *" # earlier than multi-platform
 #  push:
@@ -57,6 +88,7 @@ jobs:
 # job id is the platform : arm / arm64 here
 
   arm64:
+    if: ${{ github.event.inputs.arm64 == 'true' }}
     needs: gen-matrix
 
     strategy:
@@ -71,8 +103,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -109,6 +141,7 @@ jobs:
           path: squid/btlayer-*.log
 
   arm:
+    if: ${{ github.event.inputs.arm == 'true' }}
     needs: gen-matrix
 
     strategy:
@@ -123,8 +156,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -161,6 +194,7 @@ jobs:
           path: squid/btlayer-*.log
 
   i386:
+    if: ${{ github.event.inputs.i386 == 'true' }}
     needs: gen-matrix
 
     strategy:
@@ -175,8 +209,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -213,6 +247,7 @@ jobs:
           path: squid/btlayer-*.log
 
   ppc64le:
+    if: ${{ github.event.inputs.ppc64le == 'true' }}
     needs: gen-matrix
 
     strategy:
@@ -227,8 +262,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
 
     steps:
       - name: Install QEMU and podman
@@ -265,6 +300,7 @@ jobs:
           path: squid/btlayer-*.log
 
   riscv64:
+    if: ${{ github.event.inputs.riscv64 == 'true' }}
     needs: gen-matrix
 
     strategy:
@@ -279,8 +315,8 @@ jobs:
 
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {1}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Install QEMU and podman
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static podman
@@ -318,6 +354,7 @@ jobs:
 
 
   freebsd-amd64:
+    if: ${{ github.event.inputs.freebsd == 'true' }}
     runs-on: ubuntu-24.04 # replicate for -arm
 
     strategy:
