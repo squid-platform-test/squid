@@ -73,7 +73,6 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && true || matrix.platform == 'arm64' && true || matrix.platform == 'i386' && true || matrix.platform == 'amd64' && true || false }}
       pjobs: -j`nproc`
 
     steps:
@@ -96,6 +95,10 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
+          case ${{ matrix.platform }} in
+            arm|arm64|i386|amd64) export CCACHE_DISABLE=true ;;
+            *) export CCACHE_DISABLE=false ;;
+          esac
           if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
           $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
@@ -128,7 +131,6 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && true || matrix.platform == 'arm64' && true || matrix.platform == 'i386' && true || matrix.platform == 'amd64' && true || false }}
       pjobs: -j`nproc`
 
     steps:
@@ -151,6 +153,10 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
+          case ${{ matrix.platform }} in
+            arm|arm64|i386|amd64) export CCACHE_DISABLE=true ;;
+            *) export CCACHE_DISABLE=false ;;
+          esac
           if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
           $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
@@ -182,7 +188,6 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && true || matrix.platform == 'arm64' && true || matrix.platform == 'i386' && true || matrix.platform == 'amd64' && true || false }}
       pjobs: -j`nproc`
 
     steps:
@@ -205,6 +210,10 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
+          case ${{ matrix.platform }} in
+            arm|arm64|i386|amd64) export CCACHE_DISABLE=true ;;
+            *) export CCACHE_DISABLE=false ;;
+          esac
           if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
           $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
@@ -236,7 +245,6 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && true || matrix.platform == 'arm64' && true || matrix.platform == 'i386' && true || matrix.platform == 'amd64' && true || false }}
       pjobs: -j`nproc`
 
     steps:
@@ -259,6 +267,10 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
+          case ${{ matrix.platform }} in
+            arm|arm64|i386|amd64) export CCACHE_DISABLE=true ;;
+            *) export CCACHE_DISABLE=false ;;
+          esac
           if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
           $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
@@ -290,7 +302,6 @@ jobs:
     env:
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-      CCACHE_DISABLE: ${{ matrix.platform == 'arm' && true || matrix.platform == 'arm64' && true || matrix.platform == 'i386' && true || matrix.platform == 'amd64' && true || false }}
       pjobs: -j`nproc`
 
     steps:
@@ -313,6 +324,10 @@ jobs:
       - name: Run test-builds
         id: test-builds
         run: |
+          case ${{ matrix.platform }} in
+            arm|arm64|i386|amd64) export CCACHE_DISABLE=true ;;
+            *) export CCACHE_DISABLE=false ;;
+          esac
           if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
           $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD/squid -u $UID  \
             -e CC -e CXX -e CCACHE_DISABLE \
