@@ -4,32 +4,37 @@ on:
   workflow_dispatch:
     inputs:
       arm:
-        description: 'Test on ARM (32-bit)'
+        description: 'Test on ARM'
         required: false
         default: 'true'
         type: boolean
       arm64:
-        description: 'Test on ARM64 (64-bit)'
+        description: 'Test on ARM64'
         required: false
         default: 'true'
         type: boolean
       i386:
-        description: 'Test on i386 (32-bit)'
+        description: 'Test on i386'
         required: false
         default: 'true'
         type: boolean
       ppc64le:
-        description: 'Test on ppc64le (64-bit)'
+        description: 'Test on ppc64le'
         required: false
         default: 'true'
         type: boolean
       riscv64:
-        description: 'Test on riscv64 (64-bit)'
+        description: 'Test on riscv64'
+        required: false
+        default: 'true'
+        type: boolean
+      amd64:
+        description: 'Test on amd64'
         required: false
         default: 'true'
         type: boolean
       freebsd:
-        description: 'Test on FreeBSD (amd64)'
+        description: 'Test on FreeBSD/amd64'
         required: false
         default: 'true'
         type: boolean
@@ -54,21 +59,17 @@ concurrency:
 jobs:
 
   gen-matrix:
-
     runs-on: ubuntu-24.04
-
     outputs:
       exclusion: ${{ steps.exclusion.outputs.exclusion }}
       os:  ${{ steps.exclusion.outputs.os }}
       compiler: ${{ steps.exclusion.outputs.compiler }}
       layer: ${{ steps.exclusion.outputs.layer }}
-
     steps:
       - name: Check out sources
         uses: actions/checkout@v4
         with:
           repository: kinkie/dockerfiles
-
       - name: Define exclusion list
         id: exclusion
         run: |
@@ -80,8 +81,8 @@ jobs:
           echo "layer=${{ env.LAYER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
-# job id is the platform : arm / arm64 here
-
+# job id must be same as platform and conditional.
+# platforms are riscv64, ppc64le, arm64, arm, i386, amd64
   riscv64:
     if: ${{ github.event.inputs.riscv64 == 'true' }}
     needs: gen-matrix
@@ -89,9 +90,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        platform: [riscv64]
         compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
         layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
-        platform: [riscv64]
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
@@ -99,31 +100,26 @@ jobs:
     env:
       CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
       CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
-
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
-
       - name: Checkout Sources
         uses: actions/checkout@v4
         with:
           repository: squid-cache/squid
-
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.17
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
-
       - name: Setup config.cache
         uses: actions/cache@v4
         with:
-          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
           path: config.cache
-
       - name: Run test-builds
         id: test-builds
         run: |
@@ -134,19 +130,306 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file=config.cache --progress ${{ matrix.layer.name }}; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
-
       - name: Publish build logs
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
-          path: btlayer-*.log
+          path: |
+            btlayer-*.log
+            */config.log
+  ppc64le:
+    if: ${{ github.event.inputs.ppc64le == 'true' }}
+    needs: gen-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ppc64le]
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        with:
+          verbose: 2 # default 0
+          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+      - name: Setup config.cache
+        uses: actions/cache@v4
+        with:
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          path: config.cache
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
+            bash -c "\
+              ccache --set-config=cache_dir=\$PWD/.ccache; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+            "
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: |
+            btlayer-*.log
+            */config.log
+  arm:
+    if: ${{ github.event.inputs.arm == 'true' }}
+    needs: gen-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [arm]
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        with:
+          verbose: 2 # default 0
+          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+      - name: Setup config.cache
+        uses: actions/cache@v4
+        with:
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          path: config.cache
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
+            bash -c "\
+              ccache --set-config=cache_dir=\$PWD/.ccache; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+            "
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: |
+            btlayer-*.log
+            */config.log
+  arm64:
+    if: ${{ github.event.inputs.arm64 == 'true' }}
+    needs: gen-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [arm64]
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        with:
+          verbose: 2 # default 0
+          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+      - name: Setup config.cache
+        uses: actions/cache@v4
+        with:
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          path: config.cache
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
+            bash -c "\
+              ccache --set-config=cache_dir=\$PWD/.ccache; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+            "
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: |
+            btlayer-*.log
+            */config.log
+  i386:
+    if: ${{ github.event.inputs.i386 == 'true' }}
+    needs: gen-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [i386]
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        with:
+          verbose: 2 # default 0
+          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+      - name: Setup config.cache
+        uses: actions/cache@v4
+        with:
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          path: config.cache
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
+            bash -c "\
+              ccache --set-config=cache_dir=\$PWD/.ccache; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+            "
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: |
+            btlayer-*.log
+            */config.log
+  amd64:
+    if: ${{ github.event.inputs.amd64 == 'true' }}
+    needs: gen-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64]
+        compiler: ${{ fromJSON(needs.gen-matrix.outputs.compiler) }}
+        layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
+        os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
+        exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
+    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+    env:
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64'
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        with:
+          verbose: 2 # default 0
+          key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+      - name: Setup config.cache
+        uses: actions/cache@v4
+        with:
+          key: config-cache-${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}
+          path: config.cache
+      - name: Run test-builds
+        id: test-builds
+        run: |
+          if docker info >/dev/null 2>&1; then runtime=docker; else runtime=podman; fi
+          $runtime run --rm -v $HOME:$HOME -v $PWD:$PWD -w $PWD -u $UID  \
+            -e CC -e CXX -e CCACHE_DISABLE \
+            --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
+            ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
+            bash -c "\
+              ccache --set-config=cache_dir=\$PWD/.ccache; \
+              ccache --set-config=max_size=200M; \
+              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+            "
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ matrix.os }}-${{ matrix.platform }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
+          path: |
+            btlayer-*.log
+            */config.log
 
 
   freebsd-amd64:
-    if: false
+    if: ${{ github.event.inputs.freebsd == 'true' }}
     runs-on: ubuntu-24.04 # replicate for -arm
 
     strategy:
