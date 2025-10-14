@@ -110,7 +110,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -129,8 +129,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -167,7 +170,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -186,8 +189,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -224,7 +230,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -243,8 +249,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -281,7 +290,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -300,8 +309,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -338,7 +350,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -357,8 +369,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -395,7 +410,7 @@ jobs:
         with:
           repository: squid-cache/squid
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2.17
+        uses: hendrikmuhs/ccache-action@v1.2.19
         if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
         with:
           verbose: 2 # default 0
@@ -414,8 +429,11 @@ jobs:
             --platform linux/${{ matrix.platform == 'arm' && 'arm/v7' || matrix.platform  }} \
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
-              ccache --set-config=cache_dir=\$PWD/.ccache; \
-              ccache --set-config=max_size=200M; \
+              ccache --set-config=cache_dir=\$PWD/.ccache \
+                --set-config=max_size=200M \
+                --set-config=compression=false \
+                --set-config=hard_link=true; \
+              ccache -p; \
               ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
             "
       - name: Publish build logs
@@ -426,7 +444,6 @@ jobs:
           path: |
             btlayer-*.log
             */config.log
-
 
   freebsd-amd64:
     if: ${{ github.event.inputs.freebsd == 'true' }}
