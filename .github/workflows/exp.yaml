@@ -98,8 +98,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -111,7 +111,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
@@ -158,8 +158,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -171,7 +171,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
@@ -218,8 +218,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -231,7 +231,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
@@ -278,8 +278,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -291,7 +291,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
@@ -338,8 +338,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -351,7 +351,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
@@ -398,8 +398,8 @@ jobs:
     runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
-      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
-      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
+      CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
+      CXX: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CXX) || matrix.compiler.CXX }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -411,7 +411,7 @@ jobs:
           repository: squid-cache/squid
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2.19
-        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' }}
+        if: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' }}
         with:
           verbose: 2 # default 0
           key: ${{matrix.platform}}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
