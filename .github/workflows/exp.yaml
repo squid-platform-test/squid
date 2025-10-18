@@ -215,7 +215,7 @@ jobs:
         layer: ${{ fromJSON(needs.gen-matrix.outputs.layer) }}
         os: ${{ fromJSON(needs.gen-matrix.outputs.os) }}
         exclude:  ${{ fromJSON(needs.gen-matrix.outputs.exclusion) }}
-    runs-on: ${{ matrix.platform == 'arm' || matrix.platform == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && 'ubuntu-24.04' || 'ubuntu-22.04-arm' }}
     name: ${{ matrix.platform }}-${{ matrix.os }}-${{ matrix.compiler.CC }}-${{ matrix.layer.nick }}
     env:
       CC: ${{ matrix.platform != 'arm' && matrix.platform != 'arm64' && matrix.platform != 'i386' && matrix.platform != 'amd64' && format('ccache {0}', matrix.compiler.CC) || matrix.compiler.CC }}
