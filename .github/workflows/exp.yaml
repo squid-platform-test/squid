@@ -135,7 +135,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -196,7 +197,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -257,7 +259,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -318,7 +321,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -379,7 +383,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -440,7 +445,8 @@ jobs:
                 --set-config=compression=false \
                 --set-config=hard_link=true; \
               ccache -p; \
-              ./test-builds.sh --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }}; \
+              ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
+              make -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
