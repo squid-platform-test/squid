@@ -125,7 +125,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -176,7 +176,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -227,7 +227,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -278,7 +278,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -329,7 +329,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
@@ -380,7 +380,7 @@ jobs:
             ${{ env.DOCKER_BUILDFARM_REPO }}-${{ matrix.os }}:${{ env.DOCKER_BUILDFARM_TAG }} \
             bash -c "\
               ./test-builds.sh --action 'all' --aggressively-use-config-cache --config-cache-file \$PWD/config.cache --verbose ${{ matrix.layer.name }} && \
-              make -C bt${{ matrix.layer.name }} check; \
+              make -j`nproc` -C bt${{ matrix.layer.name }} check; \
             "
       - name: Publish build logs
         if: success() || failure()
