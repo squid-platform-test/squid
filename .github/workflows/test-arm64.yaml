@@ -1,0 +1,13 @@
+name: Test Arm64
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "10 3 * * 3"
+#  push:
+#    branches: [ github-actions-multiplatform ]
+
+jobs:
+  arm64:
+    uses: ./.github/workflows/platform.yaml
+    with: { platform: arm64 }

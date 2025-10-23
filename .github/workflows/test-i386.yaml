@@ -1,0 +1,13 @@
+name: Test i386
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "10 3 * * 4"
+#  push:
+#    branches: [ github-actions-multiplatform ]
+
+jobs:
+  i386:
+    uses: ./.github/workflows/platform.yaml
+    with: { platform: i386 }

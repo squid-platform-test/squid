@@ -1,0 +1,13 @@
+name: Test ppc64le
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "10 3 * * 5"
+#  push:
+#    branches: [ github-actions-multiplatform ]
+
+jobs:
+  ppc64le:
+    uses: ./.github/workflows/platform.yaml
+    with: { platform: ppc64le }

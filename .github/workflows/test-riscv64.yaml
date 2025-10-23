@@ -1,0 +1,13 @@
+name: Test riscv64
+
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: "10 3 * * 6"
+#  push:
+#    branches: [ github-actions-multiplatform ]
+
+jobs:
+  riscv64:
+    uses: ./.github/workflows/platform.yaml
+    with: { platform: riscv64 }

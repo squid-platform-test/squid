@@ -1,4 +1,4 @@
-name: Experiments
+name: Test FreeBSD
 
 on:
   workflow_dispatch:
