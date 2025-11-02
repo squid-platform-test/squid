@@ -1,7 +1,23 @@
 name: Test FreeBSD
 
 on:
+  workflow_call:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: string
+        default: master
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: choice
+        options:
+          - master
+          - v7
+        default: master
   schedule:
   - cron: "10 3 2 * *" #2nd day of each month
 #  push:

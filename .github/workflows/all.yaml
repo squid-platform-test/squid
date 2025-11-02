@@ -1,0 +1,27 @@
+name: Test all Linux platforms in sequence
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: choice
+        options:
+          - master
+          - v7
+        default: master
+
+jobs:
+  amd64:
+    uses: ./.github/workflows/amd64.yaml
+  arm: 
+    uses: ./.github/workflows/arm.yaml
+  arm64:
+    uses: ./.github/workflows/arm64.yaml
+  i386:
+    uses: ./.github/workflows/i386.yaml
+  ppc64le:
+    uses: ./.github/workflows/ppc64le.yaml
+  riscv64:
+    uses: ./.github/workflows/riscv64.yaml

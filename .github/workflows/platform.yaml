@@ -1,4 +1,4 @@
-name: Single CPU test
+name: Library single CPU test
 
 on:
   workflow_call:
@@ -6,6 +6,10 @@ on:
       platform:
         required: true
         type: string
+      branch:
+        required: false
+        type: string
+        default: master
 
   # schedule:
   # - cron: "10 3 12 * *" # earlier than multi-platform
@@ -75,6 +79,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: squid-cache/squid
+          ref: ${{ inputs.branch }}
       - name: Setup config.cache
         uses: actions/cache@v4
         with:
