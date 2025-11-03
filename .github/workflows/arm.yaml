@@ -26,4 +26,6 @@ on:
 jobs:
   arm:
     uses: ./.github/workflows/platform.yaml
-    with: { platform: arm }
+    with:
+      platform: arm
+      branch: ${{ inputs.branch }}

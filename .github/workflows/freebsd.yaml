@@ -49,6 +49,7 @@ jobs:
         with:
           repository: squid-cache/squid
           path: squid
+          ref: ${{ inputs.branch }}
 
       - name: Run test-builds
         id: test-builds

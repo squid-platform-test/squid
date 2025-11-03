@@ -26,4 +26,6 @@ on:
 jobs:
   amd64:
     uses: ./.github/workflows/platform.yaml
-    with: { platform: amd64 }
+    with:
+      platform: amd64
+      branch: ${{ inputs.branch }}

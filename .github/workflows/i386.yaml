@@ -26,4 +26,6 @@ on:
 jobs:
   i386:
     uses: ./.github/workflows/platform.yaml
-    with: { platform: i386 }
+    with:
+      platform: i386
+      branch: ${{ inputs.branch }}

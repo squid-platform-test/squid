@@ -26,4 +26,6 @@ on:
 jobs:
   riscv64:
     uses: ./.github/workflows/platform.yaml
-    with: { platform: riscv64 }
+    with:
+      platform: riscv64
+      branch: ${{ inputs.branch }}

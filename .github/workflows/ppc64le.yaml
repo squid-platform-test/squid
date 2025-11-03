@@ -26,4 +26,6 @@ on:
 jobs:
   ppc64le:
     uses: ./.github/workflows/platform.yaml
-    with: { platform: ppc64le }
+    with:
+      platform: ppc64le
+      branch: ${{ inputs.branch }}
