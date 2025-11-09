@@ -1,0 +1,12 @@
+name: Test amd64 (v7)
+
+on:
+  schedule:
+  - cron: "10 15 * * 1"
+
+jobs:
+  amd64:
+    uses: ./.github/workflows/platform.yaml
+    with:
+      platform: amd64
+      branch: v7
