@@ -17,7 +17,8 @@ on:
 #    branches: [ github-actions-multiplatform ]
 
 env:
-  DOCKER_BUILDFARM_REPO: docker.io/squidcache/buildfarm
+#  DOCKER_BUILDFARM_REPO: docker.io/squidcache/buildfarm
+  DOCKER_BUILDFARM_REPO: ghcr.io/kinkie/buildfarm
   DOCKER_BUILDFARM_TAG: latest
   pjobs: -j`nproc`
   COMPILER_MATRIX_JSON: '[ { "CC": \"gcc\", "CXX": \"g++\" },  { "CC": \"clang\", "CXX": \"clang++\" }]'
