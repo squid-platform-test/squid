@@ -55,7 +55,7 @@ jobs:
       - name: prep ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ github.job }}
+          key: ${{ github.job }}-${{ matrix.osversion }}
 
       - name: Run test-builds
         id: test-builds
