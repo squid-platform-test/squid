@@ -81,7 +81,7 @@ jobs:
                 portmaster \
                 gmake
             git clone --depth 1 https://git.FreeBSD.org/ports.git /usr/ports
-            portmaster -G -H --no-confirm --update-if-newer -t -P -d \
+            portmaster -G -H --no-confirm -t -P -d \
                 devel/pkgconf \
                 devel/autoconf \
                 devel/autoconf-archive \
@@ -89,8 +89,8 @@ jobs:
                 devel/cppunit \
                 devel/libltdl \
                 devel/libtool \
-                security/nettle \
-                textproc/translate-toolkit
+                security/nettle
+                # textproc/translate-toolkit
             ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
             ccache --set-config=max_size='500M'
             ccache --set-config=compression=true
