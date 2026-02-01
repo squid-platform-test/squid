@@ -51,13 +51,21 @@ jobs:
           path: squid
           ref: ${{ inputs.branch }}
 
+      - name: prep ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ github.job }}
+
       - name: Run test-builds
         id: test-builds
         uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
+          sync: rsync
+          copyback: true
           release: ${{ matrix.osversion }}
           prepare: |
+            set -e
             export BATCH=yes
             which nproc >/dev/null && echo "MAKE_JOBS_NUMBER?=`nproc --all`" >>/etc/make.conf
             echo "OPTIONS_UNSET=CUPS DEBUG DOCS FONTCONFIG NLS X11" >>/etc/make.conf
@@ -67,6 +75,7 @@ jobs:
             echo "IGNORE_OSVERSION=yes" >>/usr/local/etc/pkg.conf
 
             pkg install -y \
+                ccache \
                 git-tiny \
                 portmaster \
                 gmake
@@ -81,9 +90,15 @@ jobs:
                 devel/libtool \
                 security/nettle \
                 textproc/translate-toolkit
+            ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
+            ccache --set-config=max_size='500M'
+            ccache --set-config=compression=true
 
           run: |
+            set -e
             export MAKE=gmake
+            export CC='ccache cc'
+            export CXX='ccache c++'
             cd squid
             ./test-builds.sh
 
