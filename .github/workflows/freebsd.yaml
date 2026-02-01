@@ -20,8 +20,9 @@ on:
         default: master
   schedule:
   - cron: "10 3 2 * *" #2nd day of each month
-#  push:
-#    branches: [ github-actions-multiplatform ]
+  push:
+    paths:
+      - '.github/workflows/freebsd.yaml'
 
 concurrency:
   # Cancel ongoing tests in case of push to  branch
