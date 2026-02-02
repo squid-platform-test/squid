@@ -44,7 +44,7 @@ jobs:
         osversion:
           - "7.8"
           - "7.7"
-          - "7.3"
+          - "7.4"
         # todo: add platform: amd64 aarch64 riscv5
 
     name: openbsd(${{ matrix.osversion }})
