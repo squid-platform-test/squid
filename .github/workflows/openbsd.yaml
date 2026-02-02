@@ -44,7 +44,6 @@ jobs:
         osversion:
           - "7.8"
           - "7.7"
-          - "7.4"
         # todo: add platform: amd64 aarch64 riscv5
 
     name: openbsd(${{ matrix.osversion }})
@@ -74,7 +73,7 @@ jobs:
             set -e
             export BATCH=yes
 
-            pkg_add \
+            pkg_add -I \
               autoconf%2.72 \
               autoconf-archive \
               automake%1.16 \
@@ -91,7 +90,8 @@ jobs:
               libxml \
               libtool \
               m4 \
-              metaauto
+              metaauto \
+              || exit 1
 
             mkdir $HOME/bin
             ln -s /usr/local/bin/ggrep $HOME/bin/grep
@@ -119,7 +119,7 @@ jobs:
             # shadow system `grep` with `ggrep` installed/linked earlier
             export PATH="$HOME/bin:$PATH"
             cd squid
-            exec bash ./test-builds.sh layer-00-default layer-02-maximus
+            exec /usr/local/bin/bash ./test-builds.sh layer-00-default layer-02-maximus
 
       - name: Publish build logs
         if: success() || failure()
