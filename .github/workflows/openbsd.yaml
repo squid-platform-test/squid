@@ -115,7 +115,7 @@ jobs:
             # shadow system `grep` with `ggrep` installed/linked earlier
             export PATH="$HOME/bin:$PATH"
             cd squid
-            ./test-builds.sh
+            ./test-builds.sh layer-00-default layer-02-maximus
 
       - name: Publish build logs
         if: success() || failure()
