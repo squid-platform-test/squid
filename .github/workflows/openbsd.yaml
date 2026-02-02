@@ -1,0 +1,126 @@
+name: Test OpenBSD
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: string
+        default: master
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to test'
+        required: false
+        type: choice
+        options:
+          - master
+          - v7
+        default: master
+  schedule:
+  - cron: "10 4 2 * *"
+  push:
+    paths:
+      - '.github/workflows/openbsd.yaml'
+
+concurrency:
+  # Cancel ongoing tests in case of push to  branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  openbsd-amd64:
+    runs-on: ubuntu-24.04 # replicate for -arm
+
+    strategy:
+      fail-fast: false
+      matrix:
+        osversion:
+          - "7.8"
+          # - "7.7"
+          # - "7.3"
+        # todo: add platform: amd64 aarch64 riscv5
+
+    name: openbsd(${{ matrix.osversion }})
+
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v4
+        with:
+          repository: squid-cache/squid
+          path: squid
+          ref: ${{ inputs.branch }}
+
+      - name: prep ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ github.job }}-${{ matrix.osversion }}
+
+      - name: Run test-builds
+        id: test-builds
+        uses: vmactions/openbsd-vm@v1
+        with:
+          usesh: true
+          sync: rsync
+          copyback: true
+          release: ${{ matrix.osversion }}
+          prepare: |
+            set -e
+            export BATCH=yes
+
+            pkg_add \
+              autoconf%2.72 \
+              autoconf-archive \
+              automake%1.16 \
+              bash \
+              ccache \
+              coreutils \
+              cppunit \
+              git \
+              ggrep \
+              gmake \
+              libltdl \
+              libtool \
+              libnettle \
+              libxml \
+              libtool \
+              m4 \
+              metaauto
+
+            mkdir $HOME/bin
+            ln -s /usr/local/bin/ggrep $HOME/bin/grep
+
+            ccache --set-config=cache_dir="$GITHUB_WORKSPACE/.ccache"
+            ccache --set-config=max_size='500M'
+            ccache --set-config=compression=true
+
+          run: |
+            set -e
+            export MAKE=gmake
+            export CC='ccache cc'
+            export CXX='ccache c++'
+            export pjobs="-j`gnproc`"
+            export AUTOMAKE_VERSION=1.16
+            export amver=${AUTOMAKE_VERSION}
+            export ACLOCAL_AUTOMAKE_DIR="/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+            export ACLOCAL_PATH="/usr/local/share/aclocal:/usr/local/share/aclocal-${AUTOMAKE_VERSION}"
+            export AUTOCONF_VERSION=2.72
+            export acver=${AUTOCONF_VERSION}
+            export ltver=2.4.2
+            export CFLAGS='-Wno-compound-token-split-by-macro'
+            export LDFLAGS="-L/usr/local/lib"
+            # until we remove GNUisms from our grep commands,
+            # shadow system `grep` with `ggrep` installed/linked earlier
+            export PATH="$HOME/bin:$PATH"
+            cd squid
+            ./test-builds.sh
+
+      - name: Publish build logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openbsd-${{ matrix.osversion }}
+          path: squid/btlayer-*.log
+
