@@ -102,7 +102,7 @@ jobs:
             export CC='ccache cc'
             export CXX='ccache c++'
             cd squid
-            ./test-builds.sh
+            exec ./test-builds.sh layer-00-default layer-02-maximus
 
       - name: Publish build logs
         if: success() || failure()
