@@ -35,18 +35,20 @@ defaults:
 
 jobs:
 
-  openbsd-amd64:
-    runs-on: ubuntu-24.04 # replicate for -arm
-
+  openbsd:
     strategy:
       fail-fast: false
       matrix:
         osversion:
           - "7.8"
           - "7.7"
-        # todo: add platform: amd64 aarch64 riscv5
+        platform:
+          - amd64
+          - arm64
+          - riscv64
+    runs-on: ${{ matrix.platform != 'arm64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
 
-    name: openbsd(${{ matrix.osversion }})
+    name: openbsd(${{ matrix.osversion }}, ${{ matrix.platform }})
 
     steps:
       - name: Checkout Sources
@@ -59,7 +61,7 @@ jobs:
       - name: prep ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ github.job }}-${{ matrix.osversion }}
+          key: ${{ github.job }}-${{ matrix.osversion }}-${{ matrix.platform }}-${{ hashFiles('squid/**') }}
 
       - name: Run test-builds
         id: test-builds
@@ -69,6 +71,7 @@ jobs:
           sync: rsync
           copyback: true
           release: ${{ matrix.osversion }}
+          arch: ${{ matrix.platform }}
           prepare: |
             set -e
             export BATCH=yes
@@ -125,6 +128,6 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: openbsd-${{ matrix.osversion }}
+          name: openbsd-${{ matrix.osversion }}-${{ matrix.platform }}
           path: squid/btlayer-*.log
 
