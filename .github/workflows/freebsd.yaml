@@ -1,4 +1,4 @@
-name: Test FreeBSD
+name: FreeBSD
 
 on:
   workflow_call:
@@ -42,8 +42,8 @@ jobs:
         platform:
           - amd64
           - arm64
-          # - riscv64
-    runs-on: ${{ matrix.platform != 'arm64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
+          - riscv64
+    runs-on: ubuntu-latest
 
     name: freebsd(${{ matrix.osversion }}, ${{ matrix.platform }})
 
