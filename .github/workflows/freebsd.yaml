@@ -42,7 +42,7 @@ jobs:
         platform:
           - amd64
           - arm64
-          - riscv64
+          # - riscv64 # not working as of 2026-02
     runs-on: ubuntu-latest
 
     name: freebsd(${{ matrix.osversion }}, ${{ matrix.platform }})
