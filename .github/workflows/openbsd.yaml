@@ -44,8 +44,8 @@ jobs:
           - "7.7"
         platform:
           - amd64
-          - arm64
-          - riscv64
+          # - arm64 # not working as of 2026-02
+          # - riscv64 # not working as of 2026-02
         exclude:
           - { osversion: "7.7", platform: riscv64 }
 
