@@ -1,4 +1,4 @@
-name: Test arm
+name: Linux arm
 
 on:
   workflow_call:

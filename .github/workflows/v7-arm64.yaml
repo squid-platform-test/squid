@@ -1,4 +1,4 @@
-name: Test arm64 (v7)
+name: Linux arm64 (v7)
 
 on:
   schedule:

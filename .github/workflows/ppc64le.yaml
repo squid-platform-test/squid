@@ -1,4 +1,4 @@
-name: Test ppc64le
+name: Linux ppc64le
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Test riscv64
+name: Linux riscv64
 
 on:
   workflow_call:

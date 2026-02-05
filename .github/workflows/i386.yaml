@@ -1,4 +1,4 @@
-name: Test i386
+name: Linux i386
 
 on:
   workflow_call:
