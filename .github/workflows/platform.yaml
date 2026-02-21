@@ -10,6 +10,10 @@ on:
         required: false
         type: string
         default: master
+      os:
+        required: false
+        type: string
+        default: none
 
 env:
 #  DOCKER_BUILDFARM_REPO: docker.io/squidcache/buildfarm
@@ -44,7 +48,11 @@ jobs:
           printf "exclusion=" >> "$GITHUB_OUTPUT"
           make json-exclude-list >> "$GITHUB_OUTPUT"
           printf "os=" >> "$GITHUB_OUTPUT"
-          make targets | sed 's/^- /\\"/;s/$/\\", /' | xargs echo | sed 's/^/\[ /;s/,$/\ ]/' >> "$GITHUB_OUTPUT"
+          if [ "${{ inputs.os }}" != "none" ]; then
+            echo "[ \"${{ inputs.os }}\" ]" >> "$GITHUB_OUTPUT"
+          else
+            make targets | sed 's/^- /\\"/;s/$/\\", /' | xargs echo | sed 's/^/\[ /;s/,$/\ ]/' >> "$GITHUB_OUTPUT"
+          fi
           echo "compiler=${{ env.COMPILER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
           echo "layer=${{ env.LAYER_MATRIX_JSON }}" >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
