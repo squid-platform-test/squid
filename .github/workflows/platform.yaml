@@ -1,6 +1,19 @@
 name: Library single CPU test
 
 on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        required: true
+        type: string
+      branch:
+        required: false
+        type: string
+        default: master
+      os:
+        required: false
+        type: string
+        default: none
   workflow_call:
     inputs:
       platform:
