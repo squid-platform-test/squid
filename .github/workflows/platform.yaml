@@ -6,6 +6,7 @@ on:
       platform:
         required: true
         type: string
+        default: amd64
       branch:
         required: false
         type: string
@@ -19,6 +20,7 @@ on:
       platform:
         required: true
         type: string
+        default: amd64
       branch:
         required: false
         type: string
