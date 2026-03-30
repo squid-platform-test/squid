@@ -37,7 +37,7 @@ jobs:
       matrix:
         osversion:
           - "15.0"
-          - "14.3"
+          - "14.4"
           - "13.5"
         platform:
           - amd64
