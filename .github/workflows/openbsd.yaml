@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Checkout Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: squid-cache/squid
           path: squid
@@ -68,7 +68,7 @@ jobs:
 
       - name: Run test-builds
         id: test-builds
-        uses: vmactions/openbsd-vm@v1
+        uses: vmactions/openbsd-vm@v1.4.4
         with:
           usesh: true
           sync: rsync
@@ -129,7 +129,7 @@ jobs:
 
       - name: Publish build logs
         if: success() || failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: openbsd-${{ matrix.osversion }}-${{ matrix.platform }}
           path: squid/btlayer-*.log
