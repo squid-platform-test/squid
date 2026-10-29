@@ -38,7 +38,7 @@ jobs:
         osversion:
           - "15"
           - "14"
-          - "13"
+          - "13.5"
         platform:
           - amd64
           # - arm64 # too slow as of 2026-02
