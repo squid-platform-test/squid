@@ -68,7 +68,7 @@ jobs:
 
       - name: Run test-builds
         id: test-builds
-        uses: vmactions/openbsd-vm@v1.4.4
+        uses: vmactions/openbsd-vm@v1.4.9
         with:
           usesh: true
           sync: rsync
