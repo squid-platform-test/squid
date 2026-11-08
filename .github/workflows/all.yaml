@@ -12,6 +12,10 @@ on:
           - v7
         default: master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{inputs.branch}}
+  cancel-in-progress: true
+
 jobs:
   amd64:
     uses: ./.github/workflows/platform.yaml
