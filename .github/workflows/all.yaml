@@ -14,7 +14,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{inputs.branch}}
-  cancel-in-progress: true
+  queue: max
 
 jobs:
   amd64:
